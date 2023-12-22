@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Datasync;
 using Microsoft.EntityFrameworkCore;
 using MvcMovie.Data;
-var builder = WebApplication.CreateBuilder(args);
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 string connectionString = builder.Configuration.GetConnectionString("MvcMovieContext")
     ?? throw new InvalidOperationException("Connection string 'MvcMovieContext' not found.");
@@ -8,8 +10,9 @@ builder.Services.AddDbContext<MvcMovieContext>(options => options.UseSqlServer(c
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDatasyncControllers();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -26,8 +29,7 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
 
 app.Run();
