@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MvcMovie.Abstractions;
 using MvcMovie.Data;
 using MvcMovie.Models;
+using MvcMovie.ViewModels;
 
 namespace MvcMovie.Controllers
 {
@@ -23,7 +25,8 @@ namespace MvcMovie.Controllers
             {
                 movies = movies.Where(s => s.Title!.Contains(searchString));
             }
-            return View(await movies.OrderBy(m => m.ReleaseDate).ToListAsync());
+            List<MovieViewModel> viewModels = await movies.OrderBy(m => m.ReleaseDate).Select(m => new MovieViewModel(m)).ToListAsync();
+            return View(viewModels);
         }
 
         // GET: Movies/Details/5
@@ -41,7 +44,7 @@ namespace MvcMovie.Controllers
                 return NotFound();
             }
 
-            return View(movie);
+            return View(new MovieViewModel(movie));
         }
 
         // GET: Movies/Create
@@ -55,15 +58,16 @@ namespace MvcMovie.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BestPictureWinner,Duration,Rating,ReleaseDate,Title,Year")] Movie movie)
+        public async Task<IActionResult> Create([Bind("BestPictureWinner,Duration,Rating,ReleaseDate,Title,Year")] MovieViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
+                Movie movie = viewModel.ToMovie();
                 _context.Add(movie);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(movie);
+            return View(viewModel);
         }
 
         // GET: Movies/Edit/5
@@ -79,7 +83,7 @@ namespace MvcMovie.Controllers
             {
                 return NotFound();
             }
-            return View(movie);
+            return View(new MovieViewModel(movie));
         }
 
         // POST: Movies/Edit/5
@@ -87,27 +91,33 @@ namespace MvcMovie.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BestPictureWinner,Duration,Rating,ReleaseDate,Title,Year")] Movie movie)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,BestPictureWinner,Duration,Rating,ReleaseDate,Title,Year")] MovieViewModel viewModel)
         {
-            if (id != movie.Id)
+            if (id != viewModel.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    var movie = await _context.Movie.FindAsync(id);
+                    if (movie == null)
+                    {
+                        return NotFound();
+                    }
+                    viewModel.CopyTo(movie);
                     _context.Update(movie);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException) when (!MovieExists(movie.Id))
+                catch (DbUpdateConcurrencyException)
                 {
-                    return NotFound();
+                    return Conflict();
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(movie);
+            return View(viewModel);
         }
 
         // GET: Movies/Delete/5
@@ -118,14 +128,13 @@ namespace MvcMovie.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movie
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _context.Movie.FindAsync(id);
             if (movie == null)
             {
                 return NotFound();
             }
 
-            return View(movie);
+            return View(new MovieViewModel(movie));
         }
 
         // POST: Movies/Delete/5
@@ -141,11 +150,6 @@ namespace MvcMovie.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool MovieExists(int id)
-        {
-            return _context.Movie.Any(e => e.Id == id);
         }
     }
 }

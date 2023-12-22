@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MvcMovie.Abstractions;
 using MvcMovie.Models;
 
 namespace MvcMovie.Data

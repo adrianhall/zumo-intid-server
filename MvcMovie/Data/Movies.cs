@@ -1,4 +1,5 @@
-﻿using MvcMovie.Models;
+﻿using MvcMovie.Abstractions;
+using MvcMovie.Models;
 
 namespace MvcMovie.Data;
 
