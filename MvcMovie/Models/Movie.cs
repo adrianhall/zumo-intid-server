@@ -11,6 +11,29 @@ public class Movie : IMovie
     [Key]
     public int Id { get; set; }
 
+    #region Mobile Adjustments
+    /// <summary>
+    /// The globally unique ID for this movie.
+    /// </summary>
+    public string MobileId { get; set; } = Guid.NewGuid().ToString("N");
+
+    /// <summary>
+    /// The row version.
+    /// </summary>
+    [Timestamp]
+    public byte[] Version { get; set; } = [];
+
+    /// <summary>
+    /// The date and time that this movie was last updated.
+    /// </summary>
+    public DateTimeOffset? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// <c>True</c> if the movie has been deleted, <c>false</c> normally.
+    /// </summary>
+    public bool Deleted { get; set; }
+    #endregion
+
     /// <summary>
     /// True if the movie won the oscar for Best Picture
     /// </summary>

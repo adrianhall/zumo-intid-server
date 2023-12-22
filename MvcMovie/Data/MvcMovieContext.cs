@@ -18,6 +18,19 @@ namespace MvcMovie.Data
             modelBuilder.Entity<Movie>()
                 .HasIndex(m => new { m.BestPictureWinner, m.Duration, m.Rating, m.ReleaseDate, m.Title, m.Year });
 
+            #region Mobile Adjustments
+            modelBuilder.Entity<Movie>().Property(m => m.MobileId)
+                .HasDefaultValueSql("NEWID()");
+            modelBuilder.Entity<Movie>().Property(m => m.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+            modelBuilder.Entity<Movie>()
+                .HasIndex(m => m.MobileId).IsUnique();
+            modelBuilder.Entity<Movie>()
+                .HasIndex(m => m.UpdatedAt);
+            modelBuilder.Entity<Movie>()
+                .HasIndex(m => m.Deleted);
+            #endregion
+
             modelBuilder.Entity<Movie>()
                 .HasData(Movies.MovieList);
 
